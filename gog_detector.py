@@ -78,9 +78,10 @@ def read_gog_launcher_path() -> str:
                 print("path does not exist")
 
 
-def read_installed_games() -> dict[str, str]:
+def read_installed_games(dlc=False) -> dict[str, str]:
     """Returns the installed GOG games from the registry
 
+    :param dlc: if set to True, also include the DLC with the games
     :return: installed games: {gameID1: "game1", gameID2: "game2"}
     """
     games = {}
@@ -101,6 +102,10 @@ def read_installed_games() -> dict[str, str]:
             else:
                 try:
                     game_key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, fr"SOFTWARE\WOW6432Node\GOG.com\Games\{gameID}")
+                    if not dlc:
+                        depends = winreg.QueryValueEx(game_key, "dependsOn")[0]
+                        if depends != "":  # is a DLC
+                            continue
                     game_name = winreg.QueryValueEx(game_key, "gameName")[0]
                 except FileNotFoundError:
                     print("incorrect base key")
